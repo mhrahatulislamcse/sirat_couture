@@ -1,7 +1,7 @@
 import { spawnSync } from 'child_process';
 import fs from 'fs';
 
-const inputPath = 'public/assets/aistudio/Gemini_Generated_Image_k7y6j8k7y6j8k7y6_6684930b.jpg';
+const inputPath = 'public/assets/sairat-couture-crest-source.jpg';
 const outputPath = 'public/assets/sairat-couture-logo.png';
 
 // Crop coordinates for the insignia and text

@@ -1,6 +1,0 @@
-{
-  "summary": "Implementation plan for creating the AdminDispatchControl sub-component in AdminDashboard with courier selection (Steadfast/Pathao), delivery zone toggle (Inside/Outside Dhaka) with auto-recalculated delivery fees and COD, and instant consignment note generation and printing.",
-  "updatedAt": "2026-10-16T21:26:59.167452288Z",
-  "requestFeedback": true,
-  "userFacing": true
-}

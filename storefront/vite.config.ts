@@ -12,7 +12,6 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    hmr: process.env.DISABLE_HMR !== 'true',
     proxy: {
       '/api': {
         target: process.env.VITE_API_BASE_URL || 'http://localhost:4000',
