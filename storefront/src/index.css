@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+/* Aeonik by CoType Foundry (@font-face local definitions) */
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/Aeonik-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/Aeonik-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/Aeonik-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Explicit 'Aeonik – CoType Foundry' font family aliases */
+@font-face {
+  font-family: 'Aeonik – CoType Foundry';
+  src: url('/fonts/Aeonik-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Aeonik – CoType Foundry';
+  src: url('/fonts/Aeonik-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Aeonik – CoType Foundry';
+  src: url('/fonts/Aeonik-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-aeonik: "Aeonik – CoType Foundry", "Aeonik", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-sans: "Aeonik – CoType Foundry", "Aeonik", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-editorial: "Playfair Display", "Cormorant Garamond", "Bodoni Moda", Georgia, serif;
+  --font-serif: "Playfair Display", "Cormorant Garamond", "Bodoni Moda", Georgia, serif;
+  --font-classical: "Cinzel", "Playfair Display", "Bodoni Moda", serif;
+  --font-display: "Playfair Display", "Cormorant Garamond", "Bodoni Moda", serif;
+  --font-mono: "Space Mono", ui-monospace, monospace;
+
+  /* Sophisticated Classical + Modern Shop Frontend Color Palette */
+  --color-canvas: #FAF8F5;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #F4EFEB;
+  --color-alabaster: #FAF8F5;
+  --color-parchment: #F3ECE3;
+  --color-creme: #FDFCF8;
+  --color-obsidian: #171513;
+  --color-espresso: #211E1B;
+  --color-gold: #9E7D47;
+  --color-gold-light: #C9B28B;
+  --color-gold-dark: #7A5E35;
+  --color-gold-wash: #FAF5EB;
+  --color-emerald-deep: #1A4231;
+  --color-burgundy-deep: #701D2B;
+}
+
+body {
+  font-family: var(--font-aeonik);
+  background-color: #FAF8F5;
+  color: #171513;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-aeonik {
+  font-family: var(--font-aeonik);
+}
+
+.font-editorial {
+  font-family: var(--font-editorial);
+}
+
+.font-classical {
+  font-family: var(--font-classical);
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-tabular {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* Luxury gold border and card accents */
+.border-gold-subtle {
+  border-color: rgba(155, 125, 78, 0.28);
+}
+
+.bg-gold-subtle {
+  background-color: rgba(155, 125, 78, 0.08);
+}
+
+/* Custom subtle scrollbars for high fashion feel */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D9D2C7;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B8AFA2;
+}
+
+

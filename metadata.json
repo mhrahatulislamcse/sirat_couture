@@ -1,0 +1,6 @@
+{
+  "name": "INNOVÉ COUTURE - Luxury Resale",
+  "description": "Gender-adaptive luxury fashion resale platform featuring dedicated Men and Women homepages, intelligent post-login redirection, persistent preference switcher, curated category grids, and Prisma schema data modeling.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

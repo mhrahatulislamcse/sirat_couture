@@ -1,0 +1,295 @@
+// ============================================================================
+// INNOVÉ COUTURE - Luxury & Archival Fashion Resale Platform
+// Relational Database Schema (Prisma ORM & PostgreSQL - Bangladesh Edition)
+// ============================================================================
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ----------------------------------------------------------------------------
+// ENUMS & TAXONOMY (Tailored for Bangladesh Resale Operations)
+// ----------------------------------------------------------------------------
+
+enum Gender {
+  MEN
+  WOMEN
+  UNISEX
+}
+
+enum ConditionGrade {
+  BRAND_NEW_TAGS      // Deadstock with tags, never worn
+  EXCELLENT_VINTAGE   // Like new, minimal patina, collector grade
+  MINOR_FLAWS         // Natural era wear, distressing, or minor fade
+}
+
+enum EraDecade {
+  ERA_90S  // 1990s golden age
+  Y2K      // 2000s Japanese & Western streetwear
+  MODERN   // Contemporary runway collections
+}
+
+enum AuthenticityStatus {
+  PENDING
+  VERIFIED
+  DIRECT_CONSIGNMENT
+}
+
+enum ProductStatus {
+  ACTIVE       // Available for purchase
+  IN_CART_HOLD // 10-minute hold active during bKash/Nagad checkout
+  SOLD         // Transferred & fulfilled
+  ARCHIVED     // Vaulted or delisted
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID_FULL
+  PARTIAL_COD_CONFIRMED // Advance delivery charge paid via bKash, garment balance on COD
+  DISPATCHED_COURIER
+  DELIVERED
+  CANCELLED
+}
+
+enum DeliveryZone {
+  INSIDE_DHAKA  // ৳80 delivery fee (1-2 days)
+  OUTSIDE_DHAKA // ৳150 delivery fee (2-4 days)
+}
+
+enum PaymentGateway {
+  BKASH
+  NAGAD
+  SSLCOMMERZ
+  CASH_ON_DELIVERY // Requires advance delivery fee
+}
+
+enum CourierProvider {
+  STEADFAST // Primary automated courier across all 64 districts in Bangladesh
+  PATHAO    // On-demand express courier inside Dhaka and major hubs
+  REDX      // Alternative nationwide logistics
+}
+
+enum CourierFulfillmentStatus {
+  PENDING_DISPATCH
+  ORDER_CREATED_STEADFAST
+  PICKED_UP
+  IN_TRANSIT_HUB
+  OUT_FOR_DELIVERY
+  DELIVERED
+  RETURN_TO_MERCHANT
+}
+
+// ----------------------------------------------------------------------------
+// CATEGORY & TAXONOMY
+// ----------------------------------------------------------------------------
+
+model Category {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  name        String
+  gender      Gender?
+  parentId    String?
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Category[] @relation("CategoryHierarchy")
+  products    Product[]
+  createdAt   DateTime   @default(now())
+}
+
+// ----------------------------------------------------------------------------
+// PRODUCT MODEL (1-of-1 Unique Archival Pieces in BDT)
+// ----------------------------------------------------------------------------
+
+model Product {
+  id                 String             @id @default(cuid())
+  sku                String             @unique // Format: BRAND-CAT-YEAR-RANDOMHEX
+  title              String
+  slug               String             @unique
+  description        String             @db.Text
+  brand              String
+  gender             Gender             @default(UNISEX)
+  
+  // Financials in Bangladeshi Taka (BDT ৳)
+  priceBDT           Int                // Listing price in BDT (e.g., 45000 = ৳45,000)
+  salePriceBDT       Int?               // Optional promotional price in BDT
+  cogsBDT            Int                // Cost of goods / consignor intake cost in BDT
+
+  // Resale & Authenticity Attributes
+  condition          ConditionGrade     @default(EXCELLENT_VINTAGE)
+  era                EraDecade          @default(MODERN)
+  authenticityStatus AuthenticityStatus @default(VERIFIED)
+  authenticityNotes  String?
+  
+  // Precise Garment Measurements (Stored in Inches)
+  measurements       Json               // { chestWidthIn, lengthIn, shoulderWidthIn, sleeveLengthIn, waistIn, inseamIn, riseIn }
+  wearDetails        Json?              // { fabricIntegrity, seamTension, hardwarePatina }
+
+  // Media Gallery
+  images             String[]           // Array of high-resolution image URLs
+  sizeTag            String             // Tagged size (e.g., "IT 48 / Medium", "32 Waist")
+  colorway           String             // e.g., "Charcoal Black"
+  originCountry      String             @default("Japan")
+
+  // 1-of-1 Scarcity & Concurrency
+  status             ProductStatus      @default(ACTIVE)
+  isUniquePiece      Boolean            @default(true) // Always 1-of-1 in luxury resale
+
+  categoryId         String
+  category           Category           @relation(fields: [categoryId], references: [id])
+  
+  inventoryLocks     InventoryLock[]
+  orderItem          OrderItem?
+
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([brand])
+  @@index([status])
+  @@index([priceBDT])
+}
+
+// ----------------------------------------------------------------------------
+// INVENTORY CONCURRENCY LOCK (10-Minute Hold with OTP / Payment lease)
+// ----------------------------------------------------------------------------
+
+model InventoryLock {
+  id        String    @id @default(cuid())
+  productId String
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  phone     String    // Customer's verified BD phone number
+  otpCode   String?   // Generated 4-digit verification code
+  isOtpVerified Boolean @default(false)
+  lockedAt  DateTime  @default(now())
+  expiresAt DateTime  // 10 minutes from lockedAt
+  isActive  Boolean   @default(true)
+
+  @@index([productId, isActive])
+  @@index([expiresAt])
+}
+
+// ----------------------------------------------------------------------------
+// CUSTOMER & BANGLADESH SHIPPING ADDRESS
+// ----------------------------------------------------------------------------
+
+model Customer {
+  id        String            @id @default(cuid())
+  phone     String            @unique // BD format: "017XXXXXXXX" or "018XXXXXXXX"
+  name      String
+  email     String?
+  addresses ShippingAddress[]
+  orders    Order[]
+  createdAt DateTime          @default(now())
+}
+
+model ShippingAddress {
+  id            String       @id @default(cuid())
+  customerId    String
+  customer      Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  division      String       // Dhaka, Chittagong, Sylhet, etc.
+  district      String       // Dhaka, Gazipur, Chittagong, etc.
+  thana         String       // Gulshan, Banani, Dhanmondi, Agrabad, etc.
+  streetAddress String       // House, Road, Sector, Area
+  deliveryZone  DeliveryZone @default(INSIDE_DHAKA)
+  orders        Order[]
+  createdAt     DateTime     @default(now())
+}
+
+// ----------------------------------------------------------------------------
+// ORDERS & LOCALIZED BANGLADESH PAYMENTS
+// ----------------------------------------------------------------------------
+
+model Order {
+  id                      String          @id @default(cuid())
+  orderNumber             String          @unique // e.g., INV-BD-2026-1042
+  customerId              String
+  customer                Customer        @relation(fields: [customerId], references: [id])
+  shippingAddressId       String
+  shippingAddress         ShippingAddress @relation(fields: [shippingAddressId], references: [id])
+  
+  // Amounts in BDT (৳)
+  subtotalBDT             Int
+  deliveryFeeBDT          Int             // ৳80 Inside Dhaka, ৳150 Outside Dhaka
+  totalBDT                Int             // subtotalBDT + deliveryFeeBDT
+  
+  // Payment Breakdown
+  paymentGateway          PaymentGateway  @default(BKASH)
+  isAdvanceDeliveryPaid   Boolean         @default(false) // True if ৳80/৳150 advance paid for COD
+  advancePaidAmountBDT    Int             @default(0)
+  codPayableAmountBDT     Int             @default(0)     // Amount courier collects at door
+  paymentTrxId            String?         // bKash / Nagad Transaction ID
+  
+  status                  OrderStatus     @default(PENDING_PAYMENT)
+  items                   OrderItem[]
+  consignment             CourierConsignment?
+
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+
+  @@index([orderNumber])
+  @@index([status])
+}
+
+model OrderItem {
+  id         String   @id @default(cuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String   @unique // Resale piece is strictly 1-of-1
+  product    Product  @relation(fields: [productId], references: [id])
+  priceBDT   Int
+
+  createdAt  DateTime @default(now())
+}
+
+// ----------------------------------------------------------------------------
+// AUTOMATED COURIER CONSIGNMENT (Steadfast & Pathao APIs)
+// ----------------------------------------------------------------------------
+
+model CourierConsignment {
+  id              String                   @id @default(cuid())
+  orderId         String                   @unique
+  order           Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  courier         CourierProvider          @default(STEADFAST)
+  consignmentId   String                   @unique // Returned from Steadfast/Pathao API
+  trackingCode    String                   @unique // Client waybill number
+  status          CourierFulfillmentStatus @default(ORDER_CREATED_STEADFAST)
+  codAmount       Int                      // COD amount to collect at delivery
+  recipientName   String
+  recipientPhone  String
+  recipientAddress String
+  rawApiResponse  Json?                    // Stored API response payload
+  dispatchedAt    DateTime                 @default(now())
+  deliveredAt     DateTime?
+
+  @@index([trackingCode])
+  @@index([consignmentId])
+}
+
+// ----------------------------------------------------------------------------
+// USER PROFILE & SESSION PREFERENCES MODEL
+// ----------------------------------------------------------------------------
+
+enum UserGender {
+  MEN
+  WOMEN
+  UNSPECIFIED
+}
+
+model UserProfile {
+  id            String      @id @default(cuid())
+  userId        String      @unique // Session / device identifier (e.g. usr_...)
+  gender        UserGender  @default(UNSPECIFIED)
+  preferredHome String      @default("HOME") // 'HOME' | 'SHOP' user preference
+  name          String?
+  phone         String?
+  email         String?
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([userId])
+}
+
